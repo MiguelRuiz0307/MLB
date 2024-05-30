@@ -9,6 +9,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
@@ -21,6 +22,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -242,6 +244,51 @@ fun CustomButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifie
 @Composable
 fun PantallaAmericana(navController: NavController) {
 
+    // Supongamos que tienes una lista de equipos
+    val equipos: List<Equipo> = listOf(
+        Equipo("Baltimore Orioles", "Ubicación: Baltimore, Maryland, Estados Unidos\n" +
+                "Estadio: Oriole Park at Camden Yards\n" +
+                "Mascota: The Oriole Bird\n" +
+                "Campeonatos de la Serie Mundial: 1983, 1970, 1966", R.drawable.orioles),
+
+        Equipo("New York Yankees", "Campeonatos de la Serie Mundial: 2009, 2000, 1999, 1998, 1996, MÁS\n" +
+                "Ubicación: El Bronx, Nueva York, Estados Unidos\n" +
+                "Estadio: Yankee Stadium", R.drawable.yankees),
+
+        Equipo("Boston Red Sox", "Ubicaciones: Boston, Massachusetts, Estados Unidos\n" +
+                "Estadio: Fenway Park\n" +
+                "Campeonatos de la Serie Mundial: 2018, 2013, 2007, 2004, 1918, 1916, 1915, 1912, 1903", R.drawable.boston),
+
+        Equipo("Tampa Bay Rays ", "Ubicación: Área de la Bahía de Tampa, Florida, Estados Unidos\n" +
+                "Estadios: Tropicana Field, Charlotte Sports Park\n" +
+                "Fundación: 1998 (26 años)", R.drawable.rays),
+
+        Equipo("Toronto Blue Jays", "Ubicación: Toronto, Canadá\n" +
+                "Mascota: Ace\n" +
+                "Campo: Rogers Centre\n" +
+                "Fundación: 1977 (47 años)", R.drawable.toronto),
+
+        Equipo("Chicago White Sox", "Estadio: Guaranteed Rate Field\n" +
+                "Ubicación: Chicago, Illinois, Estados Unidos", R.drawable.whitesox),
+
+        Equipo("Cleveland Guardians", "Información del equipo", R.drawable.cleveland),
+
+        Equipo("Detroit Tigers", "Información del equipo", R.drawable.detroit),
+
+        Equipo("Kansas City Royals", "Información del equipo", R.drawable.kansascity),
+
+        Equipo("Minnesota Twins", "Información del equipo", R.drawable.twins),
+
+        Equipo("Los Ángeles Angels", "Información del equipo", R.drawable.angels),
+
+        Equipo("Seattle Mariners", "Información del equipo", R.drawable.mariners),
+
+        Equipo("Houston Astros ", "Información del equipo", R.drawable.astros),
+
+        Equipo("Oakland Athletics ", "Información del equipo", R.drawable.athletics),
+
+        Equipo("Texas Rangers", "Información del equipo", R.drawable.rangers),
+    )
 
     Column(
         modifier = Modifier
@@ -299,6 +346,15 @@ fun PantallaAmericana(navController: NavController) {
                 .fillMaxWidth()
                 .weight(1f)
         ) {
+            // Lista de equipos
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                items(equipos) { equipo ->
+                    EquipoCard(equipo = equipo, onClick = { /* Acción al hacer clic en la tarjeta */ })
+                    Spacer(modifier = Modifier.height(8.dp)) // Agregar espacio entre tarjetas
+                }
+            }
 
         }
 
@@ -524,11 +580,71 @@ fun DisplayImagePreview(navController: NavController) {
 }
 
 
+@Composable
+fun EquipoCard(equipo: Equipo, onClick: () -> Unit) {
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = Color(0xFF38471),
+        contentColor = Color.White
+    ) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onClick),
+        ){
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Imagen del equipo
+                Image(
+                    painter = painterResource(id = equipo.imagen),
+                    contentDescription = null,
+                    modifier = Modifier.size(64.dp)
+                )
+
+                // Nombre del equipo
+                Text(
+                    text = equipo.nombre,
+                    modifier = Modifier.padding(start = 16.dp)
+                )
+
+                // Espacio entre el nombre del equipo y los iconos
+                Spacer(modifier = Modifier.weight(1f))
+
+                // Icono de favoritos
+                IconButton(
+                    onClick = { /* Acción al hacer clic en el icono de favoritos */ },
+                    modifier = Modifier.padding(end = 8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Favorite,
+                        contentDescription = "Favoritos",
+                        tint = Color.Gray // Color de los iconos
+                    )
+                }
+
+                // Icono de eliminar
+                IconButton(
+                    onClick = { /* Acción al hacer clic en el icono de eliminar */ }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Eliminar",
+                        tint = Color.Gray // Color de los iconos
+                    )
+                }
+            }
+        }
+    }
+}
+
 
 
 
 data class Equipo(
     val nombre: String,
     val informacion: String,
-    val icono: Int
+    val imagen: Int
 )
