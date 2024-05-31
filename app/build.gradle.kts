@@ -62,8 +62,8 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:2.4.0-alpha10")
     implementation("androidx.navigation:navigation-compose:2.4.0-alpha10")
     implementation("androidx.navigation:navigation-ui-ktx:2.4.0-alpha10")
-
-
+    implementation("com.google.code.gson:gson:2.8.8")
+    implementation(libs.androidx.runtime.livedata)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
