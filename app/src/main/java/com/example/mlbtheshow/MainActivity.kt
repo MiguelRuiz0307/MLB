@@ -84,6 +84,16 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // Establecer la pantalla completa
+        window.decorView.systemUiVisibility = (
+                android.view.View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                        or android.view.View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                        or android.view.View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                        or android.view.View.SYSTEM_UI_FLAG_FULLSCREEN
+                        or android.view.View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                        or android.view.View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                )
+
         // Inicialización del ViewModel de favoritos utilizando ViewModelProvider
         favoritosViewModel = ViewModelProvider(this).get(FavoritosViewModel::class.java)
 
@@ -406,10 +416,12 @@ fun ExploreScreen(navController: NavController) {
                 painter = painterResource(id = R.drawable.iconopantalla),
                 contentDescription = null,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 32.dp, end = 32.dp, top = 40.dp) // Añadir padding
+                    .fillMaxWidth(0.8f) // Ocupa el 80% del ancho disponible
+                    .padding(horizontal = 17.dp, vertical = 40.dp) // Ajusta el padding
+                    .aspectRatio(1.5f) // Relación de aspecto de la imagen (opcional)
                     .align(Alignment.CenterHorizontally)
             )
+
         }
 
         // Barra de navegación en la parte inferior de la pantalla
@@ -503,7 +515,7 @@ fun PantallaAmericana(navController: NavController, favoritosViewModel: Favorito
 
 
     Scaffold(
-        topBar = { CustomTopBar(navController) },
+        topBar = { CustomTopBar(navController = navController, title = "Liga Americana")},
         bottomBar = { CustomBottomBar(navController, favoritosViewModel) }
     ) { paddingValues ->
         Column(
@@ -572,7 +584,7 @@ fun PantallaNacional(navController: NavController, favoritosViewModel: Favoritos
 
 
     Scaffold(
-        topBar = { CustomTopBar(navController) },
+        topBar = { CustomTopBar(navController = navController, title = "Liga Nacional") },
         bottomBar = { CustomBottomBar(navController, favoritosViewModel) }
     ) { paddingValues ->
         Column(
@@ -877,6 +889,15 @@ fun EquipoCard(
     showFavoriteIcon: Boolean
 ) {
     var isFavorite by equipo.esFavorito
+    var showMessage by remember { mutableStateOf(false) }
+    var messageText by remember { mutableStateOf("") }
+
+    LaunchedEffect(showMessage) {
+        if (showMessage) {
+            delay(3000) // Espera 3 segundos
+            showMessage = false
+        }
+    }
 
     Card(
         modifier = Modifier
@@ -923,6 +944,8 @@ fun EquipoCard(
                 IconButton(onClick = {
                     isFavorite = !isFavorite
                     onFavoriteClick()
+                    showMessage = true
+                    messageText = if (isFavorite) "Se agregó a favoritos" else "Se eliminó de favoritos"
                 }) {
                     Icon(
                         imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
@@ -933,7 +956,11 @@ fun EquipoCard(
             }
 
             onDeleteClick?.let {
-                IconButton(onClick = it) {
+                IconButton(onClick = {
+                    onDeleteClick()
+                    showMessage = true
+                    messageText = "Se eliminó de favoritos"
+                }) {
                     Icon(
                         imageVector = Icons.Default.Delete,
                         contentDescription = "Delete",
@@ -943,7 +970,20 @@ fun EquipoCard(
             }
         }
     }
+
+    if (showMessage) {
+        Snackbar(
+            action = {
+                TextButton(onClick = { showMessage = false }) {
+                    Text(text = "OK")
+                }
+            }
+        ) {
+            Text(text = messageText)
+        }
+    }
 }
+
 
 
 
@@ -998,13 +1038,14 @@ fun SearchDialog(
 
 
 @Composable
-fun CustomTopBar(navController: NavController) {
+fun CustomTopBar(navController: NavController, title: String) {
+    // Cabecera
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(65.dp)
+            .height(115.dp)
             .background(Color.Black)
-            .padding(start = 16.dp, end = 16.dp)
+            .padding(start = 16.dp, end = 16.dp) // Añade relleno a los lados de la cabecera
     ) {
         Row(
             modifier = Modifier
@@ -1013,6 +1054,7 @@ fun CustomTopBar(navController: NavController) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
+            // Botón de retroceso
             IconButton(
                 onClick = { navController.popBackStack() }
             ) {
@@ -1022,24 +1064,19 @@ fun CustomTopBar(navController: NavController) {
                     tint = Color.White
                 )
             }
+            // Título de la pantalla dinámico
             Text(
-                text = "Liga Americana",
+                text = title,
                 color = Color.White,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.weight(1f)
-            )
-            Image(
-                painter = painterResource(id = R.drawable.americana),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(45.dp)
-                    .align(Alignment.CenterVertically)
+                modifier = Modifier.weight(1f) // Hace que el título ocupe todo el espacio disponible
             )
         }
     }
 }
+
 
 @Composable
     fun CustomBottomBar(
@@ -1089,26 +1126,18 @@ fun CustomTopBar(navController: NavController) {
                     tint = Color.White
                 )
             }
-            IconButton(onClick = { /* Acción para eliminar */ }) {
+            // IconButton para abrir el diálogo de búsqueda
+            IconButton(
+                onClick = { showDialog.value = true },
+            ) {
                 Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "Deleted",
+                    imageVector = Icons.Default.Search,
+                    contentDescription = "Search",
                     tint = Color.White
                 )
             }
         }
 
-        // IconButton para abrir el diálogo de búsqueda
-        IconButton(
-            onClick = { showDialog.value = true },
-            modifier = Modifier.align(Alignment.CenterEnd)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Search,
-                contentDescription = "Search",
-                tint = Color.White
-            )
-        }
     }
 
     // Diálogo de búsqueda
