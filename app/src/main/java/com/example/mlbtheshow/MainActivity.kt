@@ -48,6 +48,24 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import com.example.mlbtheshow.ui.theme.MLBTheShowTheme
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.Surface
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.window.Dialog
 
 
 /**
@@ -149,6 +167,15 @@ class FavoritosViewModel : ViewModel() {
     private val _equiposFavoritos = MutableLiveData<List<Equipo>>()
     // Exponemos una LiveData inmutable para que otras clases solo puedan observarla, no modificarla directamente
     val equiposFavoritos: LiveData<List<Equipo>> = _equiposFavoritos
+    private val _showMessage = MutableStateFlow(false)
+    val showMessage: StateFlow<Boolean> = _showMessage
+    var lastAction: Action? = null
+
+    // Enumeración para rastrear las acciones
+    enum class Action {
+        AGREGAR,
+        ELIMINAR
+    }
 
     init {
         // Inicializamos la lista de favoritos vacía
@@ -166,6 +193,8 @@ class FavoritosViewModel : ViewModel() {
             val nuevaLista = listaActual.toMutableList()
             nuevaLista.add(equipo)
             _equiposFavoritos.postValue(nuevaLista) // Utilizar postValue para actualizar el valor de LiveData
+            _showMessage.value = true // Mostrar mensaje de confirmación
+            lastAction = Action.AGREGAR // Actualizar la última acción realizada
         }
     }
 
@@ -178,7 +207,27 @@ class FavoritosViewModel : ViewModel() {
         val nuevaLista = listaActual.toMutableList()
         nuevaLista.remove(equipo)
         _equiposFavoritos.value = nuevaLista
+        _showMessage.value = true // Mostrar mensaje de confirmación
+        lastAction = Action.ELIMINAR // Actualizar la última acción realizada
     }
+
+    /**
+     * Método para mostrar u ocultar el mensaje de confirmación.
+     * @param mostrar Booleano que indica si se debe mostrar el mensaje de confirmación.
+     */
+    fun mostrarMensajeDeConfirmacion(mostrar: Boolean) {
+        _showMessage.value = mostrar
+    }
+
+
+    fun toggleEquipoFavorito(equipo: Equipo) {
+        if (_equiposFavoritos.value?.contains(equipo) == true) {
+            eliminarEquipoFavorito(equipo)
+        } else {
+            agregarEquipoFavorito(equipo)
+        }
+    }
+
 }
 
 
@@ -322,33 +371,29 @@ fun ExploreScreen(navController: NavController) {
             ) {
                 // Columna para el botón y la imagen de la Liga Americana
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    CustomButton(
-                        text = "Liga Americana",
-                        onClick = { navController.navigate("pantalla_americana") }
-                    )
                     Image(
                         painter = painterResource(id = R.drawable.americana),
                         contentDescription = null,
                         modifier = Modifier
+                            .clickable { navController.navigate("pantalla_americana") }
                             .width(100.dp)  // Ajusta el ancho de la imagen
                             .height(100.dp)  // Ajusta la altura de la imagen
                             .padding(top = 8.dp)
+                            .clip(RoundedCornerShape(16.dp))  // Bordes redondeados
                     )
                 }
 
                 // Columna para el botón y la imagen de la Liga Nacional
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    CustomButton(
-                        text = "Liga Nacional",
-                        onClick = { navController.navigate("pantalla_nacional") }
-                    )
                     Image(
                         painter = painterResource(id = R.drawable.nacional),
                         contentDescription = null,
                         modifier = Modifier
+                            .clickable { navController.navigate("pantalla_nacional") }
                             .width(100.dp)  // Ajusta el ancho de la imagen
                             .height(100.dp)  // Ajusta la altura de la imagen
                             .padding(top = 8.dp)
+                            .clip(RoundedCornerShape(16.dp))  // Bordes redondeados
                     )
                 }
             }
@@ -390,18 +435,11 @@ fun ExploreScreen(navController: NavController) {
                         tint = Color.White
                     )
                 }
-                // Botón de elementos eliminados (acción aún no implementada)
-                IconButton(onClick = { /* Acción para eliminados */ }) {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = "Deleted",
-                        tint = Color.White
-                    )
-                }
             }
         }
     }
 }
+
 
 
 
@@ -441,79 +479,38 @@ fun CustomButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifie
  */
 @Composable
 fun PantallaAmericana(navController: NavController, favoritosViewModel: FavoritosViewModel) {
-
     // Lista de equipos de la Liga Americana
     val equipos: List<Equipo> = listOf(
-        Equipo("Baltimore Orioles", "Fueron fundados en 1894\nHan ganado nueve series Mundiales", R.drawable.orioles),
+        Equipo("Baltimore Orioles", "Fueron fundados en 1894\nHan ganado nueve series\n Mundiales", R.drawable.orioles),
         Equipo("New York Yankees", "Fueron fundados en 1903\nHan ganado 27 series\n Mundiales", R.drawable.yankees),
         Equipo("Boston Red Sox", "Fueron fundados en 1901\nHan ganado 9 Series\n Mundiales", R.drawable.boston),
-        Equipo("Tampa Bay Rays", "Fueron fundados en 1998\nAún no han ganado una serie Mundial.", R.drawable.rays),
-        Equipo("Toronto Blue Jays", "Fueron fundados en 1977\nHan ganado dos veces la Serie Mundial", R.drawable.toronto),
+        Equipo("Tampa Bay Rays", "Fueron fundados en 1998\nAún no han ganado una\n serie Mundial.", R.drawable.rays),
+        Equipo("Toronto Blue Jays", "Fueron fundados en 1977\nHan ganado dos veces\n la Serie Mundial", R.drawable.toronto),
         Equipo("Chicago White Sox", "Fueron fundados en 1901\nHan ganado tres series\n Mundiales", R.drawable.whitesox),
         Equipo("Cleveland Guardians", "Fueron fundados en 1894\nHan ganado dos series\n Mundiales", R.drawable.cleveland),
-        Equipo("Detroit Tigers", "Fueron fundados en 1894\nHan ganado cuatro Series Mundiales", R.drawable.detroit),
+        Equipo("Detroit Tigers", "Fueron fundados en 1894\nHan ganado cuatro Series\n Mundiales", R.drawable.detroit),
         Equipo("Kansas City Royals", "Fueron fundados en 1969\nHan ganado dos series\n Mundiales", R.drawable.kansascity),
         Equipo("Minnesota Twins", "Fueron fundados en 1901\nHan ganado tres series\n Mundiales", R.drawable.twins),
         Equipo("Los Ángeles Angels", "Fueron fundados en 1961\nHan ganado una serie\n Mundial", R.drawable.angels),
-        Equipo("Seattle Mariners", "Fueron fundados en 1977\nAún no han ganado una serie Mundial", R.drawable.mariners),
+        Equipo("Seattle Mariners", "Fueron fundados en 1977\nAún no han ganado una\n serie Mundial", R.drawable.mariners),
         Equipo("Houston Astros", "Fueron fundados en 1962\nHan ganado dos series\n Mundiales", R.drawable.astros),
-        Equipo("Oakland Athletics", "Fueron fundados en 1901\nHan ganado nueve series Mundiales", R.drawable.athletics),
-        Equipo("Texas Rangers", "Fueron fundados en 1961\nAún no han ganado una serie Mundial", R.drawable.rangers)
+        Equipo("Oakland Athletics", "Fueron fundados en 1901\nHan ganado nueve series\n Mundiales", R.drawable.athletics),
+        Equipo("Texas Rangers", "Fueron fundados en 1961\nAún no han ganado una\n serie Mundial", R.drawable.rangers)
     )
 
-    // Columna principal que llena toda la pantalla y establece el color de fondo
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFF8B4513))
-    ) {
-        // Encabezado con el título y la imagen
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(115.dp)
-                .background(Color.Black)
-                .padding(start = 16.dp, end = 16.dp)
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                IconButton(
-                    onClick = { navController.popBackStack() }
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.ArrowBack,
-                        contentDescription = "Back",
-                        tint = Color.White
-                    )
-                }
-                Text(
-                    text = "Liga Americana",
-                    color = Color.White,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.weight(1f)
-                )
-                Image(
-                    painter = painterResource(id = R.drawable.americana),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(90.dp)
-                        .align(Alignment.CenterVertically)
-                )
-            }
-        }
+    // Observa los cambios en la lista de equipos favoritos
+    val equiposFavoritos by favoritosViewModel.equiposFavoritos.observeAsState(emptyList())
 
-        // Columna secundaria que contiene la lista de equipos
+
+    Scaffold(
+        topBar = { CustomTopBar(navController) },
+        bottomBar = { CustomBottomBar(navController, favoritosViewModel) }
+    ) { paddingValues ->
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
+                .fillMaxSize()
+                .background(Color(0xFF8B4513))
+                .padding(paddingValues)
         ) {
             LazyColumn(
                 modifier = Modifier.fillMaxWidth()
@@ -522,69 +519,22 @@ fun PantallaAmericana(navController: NavController, favoritosViewModel: Favorito
                     EquipoCard(
                         equipo = equipo,
                         onFavoriteClick = {
-                            // Lógica para manejar clics en el icono de favoritos
                             if (favoritosViewModel.equiposFavoritos.value?.contains(equipo) == true) {
                                 favoritosViewModel.eliminarEquipoFavorito(equipo)
                             } else {
                                 favoritosViewModel.agregarEquipoFavorito(equipo)
                             }
                         },
-                        onDeleteClick = {
-                            // Lógica para manejar clics en el icono de eliminar
-                        },
-                        favoritosViewModel = favoritosViewModel
+                        favoritosViewModel = favoritosViewModel,
+                        showFavoriteIcon = true
                     )
-                    Spacer(modifier = Modifier.height(8.dp)) // Espacio entre las tarjetas
-                }
-            }
-
-        }
-
-        // Barra de navegación en la parte inferior
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp)
-                .background(Color.Black),
-            contentAlignment = Alignment.Center
-        ) {
-            Row(
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                IconButton(onClick = { navController.navigate("explore") }) {
-                    Icon(
-                        imageVector = Icons.Default.Home,
-                        contentDescription = "Home",
-                        tint = Color.White
-                    )
-                }
-                IconButton(onClick = { /* Acción para SEARCH */ }) {
-                    Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = "Search",
-                        tint = Color.White
-                    )
-                }
-                IconButton(onClick = { navController.navigate("favoritos") }) {
-                    Icon(
-                        imageVector = Icons.Default.Favorite,
-                        contentDescription = "Favorites",
-                        tint = Color.White
-                    )
-                }
-                IconButton(onClick = { /* Acción para eliminados */ }) {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = "Deleted",
-                        tint = Color.White
-                    )
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
             }
         }
     }
 }
+
 
 
 
@@ -600,76 +550,36 @@ fun PantallaNacional(navController: NavController, favoritosViewModel: Favoritos
 
     // Lista de equipos de la Liga Nacional
     val equipos: List<Equipo> = listOf(
-        Equipo("Atlanta Braves", "Fueron fundados en 1871\nHan ganado cuatro series Mundiales", R.drawable.braves),
+        Equipo("Atlanta Braves", "Fueron fundados en 1871\nHan ganado cuatro series\n Mundiales", R.drawable.braves),
         Equipo("Miami Marlins", "Fueron fundados en 1993\nHan ganado dos series\n Mundiales", R.drawable.marlins),
         Equipo("New York Mets", "Fueron fundados en 1962\nHan ganado dos series\n Mundiales", R.drawable.mets),
         Equipo("Philadelphia Phillies", "Fueron fundados en 1883\nHan ganado dos series\n Mundiales", R.drawable.phillies),
         Equipo("Washington Nationals", "Fueron fundados en 1969\nHan ganado una serie\n Mundial", R.drawable.nationals),
         Equipo("Chicago Cubs", "Fueron fundados en 1876\nHan ganado tres series\n Mundiales", R.drawable.cubs),
-        Equipo("Cincinnati Reds", "Fueron fundados en 1881\nHan ganado cinco series Mundiales", R.drawable.reds),
-        Equipo("Milwaukee Brewers", "Fueron fundados en 1969\nAún no han ganado una serie Mundial", R.drawable.brewers),
-        Equipo("Pittsburgh Pirates", "Fueron fundados en 1882\nHan ganado cinco series Mundiales", R.drawable.pirates),
-        Equipo("St. Louis Cardinals", "Fueron fundados en 1882\nHan ganado once series Mundiales", R.drawable.cardinals),
+        Equipo("Cincinnati Reds", "Fueron fundados en 1881\nHan ganado cinco series\n Mundiales", R.drawable.reds),
+        Equipo("Milwaukee Brewers", "Fueron fundados en 1969\nAún no han ganado una\n serie Mundial", R.drawable.brewers),
+        Equipo("Pittsburgh Pirates", "Fueron fundados en 1882\nHan ganado cinco series\n Mundiales", R.drawable.pirates),
+        Equipo("St. Louis Cardinals", "Fueron fundados en 1882\nHan ganado once series\n Mundiales", R.drawable.cardinals),
         Equipo("Arizona Diamondbacks", "Fueron fundados en 1998\nHan ganado una serie\n Mundial", R.drawable.arizona),
-        Equipo("Colorado Rockies", "Fueron fundados en 1993\nAún no han ganado una serie Mundial", R.drawable.rockies),
-        Equipo("Los Angeles Dodgers", "Fueron fundados en 1883\nHan ganado siete series Mundiales", R.drawable.dodgers),
-        Equipo("San Diego Padres", "Fueron fundados en 1969\nAún no han ganado una serie Mundial", R.drawable.padres),
-        Equipo("San Francisco Giants", "Fueron fundados en 1883\nHan ganado ocho series Mundiales", R.drawable.giants)
+        Equipo("Colorado Rockies", "Fueron fundados en 1993\nAún no han ganado una\n serie Mundial", R.drawable.rockies),
+        Equipo("Los Angeles Dodgers", "Fueron fundados en 1883\nHan ganado siete series\n Mundiales", R.drawable.dodgers),
+        Equipo("San Diego Padres", "Fueron fundados en 1969\nAún no han ganado una\n serie Mundial", R.drawable.padres),
+        Equipo("San Francisco Giants", "Fueron fundados en 1883\nHan ganado ocho series\n Mundiales", R.drawable.giants)
     )
 
-    // Columna principal que llena toda la pantalla y establece el color de fondo
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFF8B4513))
-    ) {
-        // Encabezado con el título y la imagen
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(115.dp)
-                .background(Color.Black)
-                .padding(start = 16.dp, end = 16.dp)
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                IconButton(
-                    onClick = { navController.popBackStack() }
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.ArrowBack,
-                        contentDescription = "Back",
-                        tint = Color.White
-                    )
-                }
-                Text(
-                    text = "Liga Nacional",
-                    color = Color.White,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.weight(1f)
-                )
-                Image(
-                    painter = painterResource(id = R.drawable.nacional),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(90.dp)
-                        .align(Alignment.CenterVertically)
-                )
-            }
-        }
+    // Observa los cambios en la lista de equipos favoritos
+    val equiposFavoritos by favoritosViewModel.equiposFavoritos.observeAsState(emptyList())
 
-        // Columna secundaria que contiene la lista de equipos
+
+    Scaffold(
+        topBar = { CustomTopBar(navController) },
+        bottomBar = { CustomBottomBar(navController, favoritosViewModel) }
+    ) { paddingValues ->
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
+                .fillMaxSize()
+                .background(Color(0xFF8B4513))
+                .padding(paddingValues)
         ) {
             LazyColumn(
                 modifier = Modifier.fillMaxWidth()
@@ -678,69 +588,22 @@ fun PantallaNacional(navController: NavController, favoritosViewModel: Favoritos
                     EquipoCard(
                         equipo = equipo,
                         onFavoriteClick = {
-                            // Lógica para manejar clics en el icono de favoritos
                             if (favoritosViewModel.equiposFavoritos.value?.contains(equipo) == true) {
                                 favoritosViewModel.eliminarEquipoFavorito(equipo)
                             } else {
                                 favoritosViewModel.agregarEquipoFavorito(equipo)
                             }
                         },
-                        onDeleteClick = {
-                            // Lógica para manejar clics en el icono de eliminar
-                        },
-                        favoritosViewModel = favoritosViewModel
+                        favoritosViewModel = favoritosViewModel,
+                        showFavoriteIcon = true
                     )
-                    Spacer(modifier = Modifier.height(8.dp)) // Espacio entre las tarjetas
-                }
-            }
-
-        }
-
-        // Barra de navegación en la parte inferior
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp)
-                .background(Color.Black),
-            contentAlignment = Alignment.Center
-        ) {
-            Row(
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                IconButton(onClick = { navController.navigate("explore") }) {
-                    Icon(
-                        imageVector = Icons.Default.Home,
-                        contentDescription = "Home",
-                        tint = Color.White
-                    )
-                }
-                IconButton(onClick = { /* Acción para SEARCH */ }) {
-                    Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = "Search",
-                        tint = Color.White
-                    )
-                }
-                IconButton(onClick = { navController.navigate("favoritos") }) {
-                    Icon(
-                        imageVector = Icons.Default.Favorite,
-                        contentDescription = "Favorites",
-                        tint = Color.White
-                    )
-                }
-                IconButton(onClick = { /* Acción para eliminados */ }) {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = "Deleted",
-                        tint = Color.White
-                    )
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
             }
         }
     }
 }
+
 
 
 
@@ -945,12 +808,12 @@ fun PantallaFavoritos(
                 items(equiposFavoritos) { equipo ->
                     EquipoCard(
                         equipo = equipo,
+                        onFavoriteClick = {}, // Función vacía como placeholder
                         onDeleteClick = {
                             favoritosViewModel.eliminarEquipoFavorito(equipo)
                         },
                         favoritosViewModel = favoritosViewModel,
-                        showFavoriteIcon = false, // No mostrar el icono de favoritos en la pantalla de favoritos
-                        onFavoriteClick = {} // Función vacía como placeholder
+                        showFavoriteIcon = false // No mostrar el icono de favoritos en la pantalla de favoritos
                     )
                     Spacer(modifier = Modifier.height(8.dp)) // Espacio entre las tarjetas
                 }
@@ -992,6 +855,12 @@ fun PantallaFavoritos(
 
 
 
+
+
+
+
+
+
 /**
  * Composable que muestra una tarjeta para representar un equipo.
  *
@@ -1003,10 +872,12 @@ fun PantallaFavoritos(
 fun EquipoCard(
     equipo: Equipo,
     onFavoriteClick: () -> Unit,
-    onDeleteClick: (() -> Unit)? = null, // Cambia a un parámetro opcional para el onDeleteClick
+    onDeleteClick: (() -> Unit)? = null,
     favoritosViewModel: FavoritosViewModel,
-    showFavoriteIcon: Boolean = true
+    showFavoriteIcon: Boolean
 ) {
+    var isFavorite by equipo.esFavorito
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -1014,85 +885,246 @@ fun EquipoCard(
             .clickable(onClick = {}),
         shape = RoundedCornerShape(16.dp),
     ) {
-        Box(
+        Row(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color(0xFF38471F))
-                .padding(16.dp)
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                // Imagen del equipo
-                Image(
-                    painter = painterResource(id = equipo.imagen),
-                    contentDescription = null,
-                    modifier = Modifier.size(64.dp)
+            Image(
+                painter = painterResource(id = equipo.imagen),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(56.dp) // Tamaño de la imagen
+                    .clip(CircleShape) // Imagen circular
+            )
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = equipo.nombre,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
                 )
-
-                Column(modifier = Modifier.padding(start = 16.dp)) {
-                    // Nombre del equipo
-                    Text(
-                        text = equipo.nombre,
-                        fontSize = 18.sp,
-                        color = Color.White,
-                        modifier = Modifier.padding(bottom = 4.dp)
-                    )
-
-                    // Información del equipo
-                    Text(
-                        text = equipo.informacion,
-                        fontSize = 14.sp,
-                        color = Color.White
-                    )
-                }
+                Text(
+                    text = equipo.informacion,
+                    fontSize = 14.sp,
+                    color = Color.White
+                )
             }
 
-            // Icono de favoritos solo si showFavoriteIcon es true
             if (showFavoriteIcon) {
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(end = 8.dp, top = 8.dp)
-                ) {
-                    IconButton(
-                        onClick = {
-                            // Toggle de equipo favorito al hacer clic en el icono de favoritos
-                            if (favoritosViewModel.equiposFavoritos.value?.contains(equipo) == true) {
-                                favoritosViewModel.eliminarEquipoFavorito(equipo)
-                            } else {
-                                favoritosViewModel.agregarEquipoFavorito(equipo)
-                            }
-                            // Realiza la acción especificada al hacer clic en el icono de favoritos
-                            onFavoriteClick()
-                        },
-                    ) {
-                        // Icono de favoritos lleno o contorno dependiendo de si el equipo está en favoritos
-                        Icon(
-                            imageVector = if (favoritosViewModel.equiposFavoritos.value?.contains(equipo) == true) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                            contentDescription = "Favorite",
-                            tint = if (favoritosViewModel.equiposFavoritos.value?.contains(equipo) == true) Color.Red else LocalContentColor.current
-                        )
-                    }
+                IconButton(onClick = {
+                    isFavorite = !isFavorite
+                    onFavoriteClick()
+                }) {
+                    Icon(
+                        imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                        contentDescription = "Favorite",
+                        tint = if (isFavorite) Color.Red else Color.White
+                    )
                 }
             }
 
-            // Icono de eliminar solo si se proporciona un onDeleteClick
             onDeleteClick?.let {
-                IconButton(
-                    onClick = onDeleteClick,
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(end = 8.dp, bottom = 8.dp)
-                ) {
+                IconButton(onClick = it) {
                     Icon(
                         imageVector = Icons.Default.Delete,
-                        contentDescription = "Eliminar",
-                        tint = Color.Gray
+                        contentDescription = "Delete",
+                        tint = Color.White
                     )
                 }
             }
         }
     }
 }
+
+
+
+
+@Composable
+fun SearchDialog(
+    onDismiss: () -> Unit,
+    onSearch: (String) -> Unit
+) {
+    var searchText by remember { mutableStateOf("") }
+
+    Dialog(
+        onDismissRequest = { onDismiss() }
+    ) {
+        Surface(
+            modifier = Modifier.padding(16.dp),
+            shape = RoundedCornerShape(8.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White)
+                    .padding(16.dp)
+            ) {
+                TextField(
+                    value = searchText,
+                    onValueChange = { searchText = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text("Buscar equipo") }
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Button(
+                    onClick = {
+                        onSearch(searchText)
+                        onDismiss()
+                    },
+                    modifier = Modifier.align(Alignment.End)
+                ) {
+                    Text("Buscar")
+                }
+            }
+        }
+    }
+}
+
+
+
+
+
+
+
+@Composable
+fun CustomTopBar(navController: NavController) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(65.dp)
+            .background(Color.Black)
+            .padding(start = 16.dp, end = 16.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxHeight()
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            IconButton(
+                onClick = { navController.popBackStack() }
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ArrowBack,
+                    contentDescription = "Back",
+                    tint = Color.White
+                )
+            }
+            Text(
+                text = "Liga Americana",
+                color = Color.White,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.weight(1f)
+            )
+            Image(
+                painter = painterResource(id = R.drawable.americana),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(45.dp)
+                    .align(Alignment.CenterVertically)
+            )
+        }
+    }
+}
+
+@Composable
+    fun CustomBottomBar(
+    navController: NavController,
+    favoritosViewModel: FavoritosViewModel,
+) {
+    // Estado para controlar la visibilidad del diálogo de búsqueda
+    val showDialog = remember { mutableStateOf(false) }
+
+    // Estado para almacenar el texto de búsqueda
+    var searchText by remember { mutableStateOf("") }
+
+    // Lista mutable de equipos filtrados por búsqueda
+    val equiposFiltrados = remember { mutableStateListOf<Equipo>() }
+
+    // Función para realizar la búsqueda y actualizar la lista de equipos filtrados
+    fun performSearch(query: String) {
+        equiposFiltrados.clear()
+        val listaEquipos = favoritosViewModel.equiposFavoritos.value ?: emptyList()
+        equiposFiltrados.addAll(listaEquipos.filter { it.nombre.contains(query, ignoreCase = true) })
+    }
+
+    // Bottom bar
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(56.dp)
+            .background(Color.Black),
+        contentAlignment = Alignment.Center
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            IconButton(onClick = { navController.navigate("explore")}) {
+                Icon(
+                    imageVector = Icons.Default.Home,
+                    contentDescription = "Home",
+                    tint = Color.White
+                )
+            }
+            IconButton(onClick = { navController.navigate("favoritos") }) {
+                Icon(
+                    imageVector = Icons.Default.Favorite,
+                    contentDescription = "Favorites",
+                    tint = Color.White
+                )
+            }
+            IconButton(onClick = { /* Acción para eliminar */ }) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Deleted",
+                    tint = Color.White
+                )
+            }
+        }
+
+        // IconButton para abrir el diálogo de búsqueda
+        IconButton(
+            onClick = { showDialog.value = true },
+            modifier = Modifier.align(Alignment.CenterEnd)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Search,
+                contentDescription = "Search",
+                tint = Color.White
+            )
+        }
+    }
+
+    // Diálogo de búsqueda
+    if (showDialog.value) {
+        SearchDialog(
+            onSearch = { searchText ->
+                performSearch(searchText)
+                // Aquí podrías ejecutar alguna acción adicional si es necesario
+                showDialog.value = false // Cerrar el diálogo después de la búsqueda
+            },
+            onDismiss = { showDialog.value = false }
+        )
+    }
+}
+
+
 
 
 
