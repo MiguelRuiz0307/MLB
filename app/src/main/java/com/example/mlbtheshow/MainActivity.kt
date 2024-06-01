@@ -23,7 +23,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,9 +49,8 @@ import androidx.compose.runtime.livedata.observeAsState
 import com.example.mlbtheshow.ui.theme.MLBTheShowTheme
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.Surface
@@ -61,9 +59,7 @@ import androidx.compose.material3.TextField
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.window.Dialog
 
@@ -125,6 +121,7 @@ data class Equipo(
     val nombre: String,
     val informacion: String,
     val imagen: Int,
+    val detalles: String = "", // Valor predeterminado para el campo detalles
     var esFavorito: MutableState<Boolean> = mutableStateOf(false)
 )
 
@@ -162,6 +159,13 @@ fun MyApp(favoritosViewModel: FavoritosViewModel) {
         composable("favoritos") {
             PantallaFavoritos(navController, favoritosViewModel = favoritosViewModel)
         }
+        composable("equipo_detail/{equipoNombre}") { backStackEntry ->
+            val equipoNombre = backStackEntry.arguments?.getString("equipoNombre")
+            val equipo = favoritosViewModel.todosLosEquipos.value?.find { it.nombre == equipoNombre }
+            equipo?.let {
+                EquipoDetailScreen(navController, it)
+            }
+        }
     }
 }
 
@@ -175,8 +179,13 @@ class FavoritosViewModel : ViewModel() {
 
     // Lista mutable de equipos favoritos
     private val _equiposFavoritos = MutableLiveData<List<Equipo>>()
+
+    private val _todosLosEquipos = MutableLiveData<List<Equipo>>()
+
     // Exponemos una LiveData inmutable para que otras clases solo puedan observarla, no modificarla directamente
+    val todosLosEquipos: LiveData<List<Equipo>> = _todosLosEquipos
     val equiposFavoritos: LiveData<List<Equipo>> = _equiposFavoritos
+
     private val _showMessage = MutableStateFlow(false)
     val showMessage: StateFlow<Boolean> = _showMessage
     var lastAction: Action? = null
@@ -190,6 +199,44 @@ class FavoritosViewModel : ViewModel() {
     init {
         // Inicializamos la lista de favoritos vacía
         _equiposFavoritos.value = emptyList()
+        _todosLosEquipos.value = listOf(
+            Equipo("Baltimore Orioles", "Fueron fundados en 1894\nHan ganado nueve series\n Mundiales", R.drawable.orioles),
+            Equipo("New York Yankees", "Fueron fundados en 1903\nHan ganado 27 series\n Mundiales", R.drawable.yankees),
+            Equipo("Boston Red Sox", "Fueron fundados en 1901\nHan ganado 9 Series\n Mundiales", R.drawable.boston),
+            Equipo("Tampa Bay Rays", "Fueron fundados en 1998\nAún no han ganado una\n serie Mundial.", R.drawable.rays),
+            Equipo("Toronto Blue Jays", "Fueron fundados en 1977\nHan ganado dos veces\n la Serie Mundial", R.drawable.toronto),
+            Equipo("Chicago White Sox", "Fueron fundados en 1901\nHan ganado tres series\n Mundiales", R.drawable.whitesox),
+            Equipo("Cleveland Guardians", "Fueron fundados en 1894\nHan ganado dos series\n Mundiales", R.drawable.cleveland),
+            Equipo("Detroit Tigers", "Fueron fundados en 1894\nHan ganado cuatro Series\n Mundiales", R.drawable.detroit),
+            Equipo("Kansas City Royals", "Fueron fundados en 1969\nHan ganado dos series\n Mundiales", R.drawable.kansascity),
+            Equipo("Minnesota Twins", "Fueron fundados en 1901\nHan ganado tres series\n Mundiales", R.drawable.twins),
+            Equipo("Los Ángeles Angels", "Fueron fundados en 1961\nHan ganado una serie\n Mundial", R.drawable.angels),
+            Equipo("Seattle Mariners", "Fueron fundados en 1977\nAún no han ganado una\n serie Mundial", R.drawable.mariners),
+            Equipo("Houston Astros", "Fueron fundados en 1962\nHan ganado dos series\n Mundiales", R.drawable.astros),
+            Equipo("Oakland Athletics", "Fueron fundados en 1901\nHan ganado nueve series\n Mundiales", R.drawable.athletics),
+            Equipo("Texas Rangers", "Fueron fundados en 1961\nAún no han ganado una\n serie Mundial", R.drawable.rangers),
+            Equipo("Atlanta Braves", "Fueron fundados en 1871\nHan ganado cuatro series\n Mundiales", R.drawable.braves),
+            Equipo("Miami Marlins", "Fueron fundados en 1993\nHan ganado dos series\n Mundiales", R.drawable.marlins),
+            Equipo("New York Mets", "Fueron fundados en 1962\nHan ganado dos series\n Mundiales", R.drawable.mets),
+            Equipo("Philadelphia Phillies", "Fueron fundados en 1883\nHan ganado dos series\n Mundiales", R.drawable.phillies),
+            Equipo("Washington Nationals", "Fueron fundados en 1969\nHan ganado una serie\n Mundial", R.drawable.nationals),
+            Equipo("Chicago Cubs", "Fueron fundados en 1876\nHan ganado tres series\n Mundiales", R.drawable.cubs),
+            Equipo("Cincinnati Reds", "Fueron fundados en 1881\nHan ganado cinco series\n Mundiales", R.drawable.reds),
+            Equipo("Milwaukee Brewers", "Fueron fundados en 1969\nAún no han ganado una\n serie Mundial", R.drawable.brewers),
+            Equipo("Pittsburgh Pirates", "Fueron fundados en 1882\nHan ganado cinco series\n Mundiales", R.drawable.pirates),
+            Equipo("St. Louis Cardinals", "Fueron fundados en 1882\nHan ganado once series\n Mundiales", R.drawable.cardinals),
+            Equipo("Arizona Diamondbacks", "Fueron fundados en 1998\nHan ganado una serie\n Mundial", R.drawable.arizona),
+            Equipo("Colorado Rockies", "Fueron fundados en 1993\nAún no han ganado una\n serie Mundial", R.drawable.rockies),
+            Equipo("Los Angeles Dodgers", "Fueron fundados en 1883\nHan ganado siete series\n Mundiales", R.drawable.dodgers),
+            Equipo("San Diego Padres", "Fueron fundados en 1969\nAún no han ganado una\n serie Mundial", R.drawable.padres),
+            Equipo("San Francisco Giants", "Fueron fundados en 1883\nHan ganado ocho series\n Mundiales", R.drawable.giants)
+        )
+    }
+
+    // Método para establecer los equipos
+    fun setTodosLosEquipos(equipos: List<Equipo>) {
+
+
     }
 
     /**
@@ -227,15 +274,6 @@ class FavoritosViewModel : ViewModel() {
      */
     fun mostrarMensajeDeConfirmacion(mostrar: Boolean) {
         _showMessage.value = mostrar
-    }
-
-
-    fun toggleEquipoFavorito(equipo: Equipo) {
-        if (_equiposFavoritos.value?.contains(equipo) == true) {
-            eliminarEquipoFavorito(equipo)
-        } else {
-            agregarEquipoFavorito(equipo)
-        }
     }
 
 }
@@ -513,9 +551,8 @@ fun PantallaAmericana(navController: NavController, favoritosViewModel: Favorito
     // Observa los cambios en la lista de equipos favoritos
     val equiposFavoritos by favoritosViewModel.equiposFavoritos.observeAsState(emptyList())
 
-
     Scaffold(
-        topBar = { CustomTopBar(navController = navController, title = "Liga Americana")},
+        topBar = { CustomTopBar(navController = navController, title = "Liga Nacional") },
         bottomBar = { CustomBottomBar(navController, favoritosViewModel) }
     ) { paddingValues ->
         Column(
@@ -531,14 +568,14 @@ fun PantallaAmericana(navController: NavController, favoritosViewModel: Favorito
                     EquipoCard(
                         equipo = equipo,
                         onFavoriteClick = {
-                            if (favoritosViewModel.equiposFavoritos.value?.contains(equipo) == true) {
-                                favoritosViewModel.eliminarEquipoFavorito(equipo)
-                            } else {
-                                favoritosViewModel.agregarEquipoFavorito(equipo)
-                            }
+                            favoritosViewModel.agregarEquipoFavorito(equipo)
                         },
                         favoritosViewModel = favoritosViewModel,
-                        showFavoriteIcon = true
+                        showFavoriteIcon = true,
+                        onCardClick = {
+                            navController.navigate("equipo_detail/${equipo.nombre}")
+                        }
+
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                 }
@@ -582,7 +619,6 @@ fun PantallaNacional(navController: NavController, favoritosViewModel: Favoritos
     // Observa los cambios en la lista de equipos favoritos
     val equiposFavoritos by favoritosViewModel.equiposFavoritos.observeAsState(emptyList())
 
-
     Scaffold(
         topBar = { CustomTopBar(navController = navController, title = "Liga Nacional") },
         bottomBar = { CustomBottomBar(navController, favoritosViewModel) }
@@ -600,14 +636,14 @@ fun PantallaNacional(navController: NavController, favoritosViewModel: Favoritos
                     EquipoCard(
                         equipo = equipo,
                         onFavoriteClick = {
-                            if (favoritosViewModel.equiposFavoritos.value?.contains(equipo) == true) {
-                                favoritosViewModel.eliminarEquipoFavorito(equipo)
-                            } else {
-                                favoritosViewModel.agregarEquipoFavorito(equipo)
-                            }
+                            favoritosViewModel.agregarEquipoFavorito(equipo)
                         },
                         favoritosViewModel = favoritosViewModel,
-                        showFavoriteIcon = true
+                        showFavoriteIcon = true,
+                        onCardClick = {
+                            navController.navigate("equipo_detail/${equipo.nombre}")
+                        }
+
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                 }
@@ -825,7 +861,10 @@ fun PantallaFavoritos(
                             favoritosViewModel.eliminarEquipoFavorito(equipo)
                         },
                         favoritosViewModel = favoritosViewModel,
-                        showFavoriteIcon = false // No mostrar el icono de favoritos en la pantalla de favoritos
+                        showFavoriteIcon = false, // No mostrar el icono de favoritos en la pantalla de favoritos
+                        onCardClick = { // Manejar el clic en la tarjeta para navegar a la pantalla de detalles
+                            navController.navigate("equipo_detail/${equipo.nombre}")
+                        }
                     )
                     Spacer(modifier = Modifier.height(8.dp)) // Espacio entre las tarjetas
                 }
@@ -886,7 +925,8 @@ fun EquipoCard(
     onFavoriteClick: () -> Unit,
     onDeleteClick: (() -> Unit)? = null,
     favoritosViewModel: FavoritosViewModel,
-    showFavoriteIcon: Boolean
+    showFavoriteIcon: Boolean,
+    onCardClick: () -> Unit // Agregar este parámetro
 ) {
     var isFavorite by equipo.esFavorito
     var showMessage by remember { mutableStateOf(false) }
@@ -903,7 +943,7 @@ fun EquipoCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
-            .clickable(onClick = {}),
+            .clickable(onClick = onCardClick),  // Usar el parámetro aquí
         shape = RoundedCornerShape(16.dp),
     ) {
         Row(
@@ -983,6 +1023,7 @@ fun EquipoCard(
         }
     }
 }
+
 
 
 
@@ -1079,7 +1120,7 @@ fun CustomTopBar(navController: NavController, title: String) {
 
 
 @Composable
-    fun CustomBottomBar(
+fun CustomBottomBar(
     navController: NavController,
     favoritosViewModel: FavoritosViewModel,
 ) {
@@ -1089,14 +1130,10 @@ fun CustomTopBar(navController: NavController, title: String) {
     // Estado para almacenar el texto de búsqueda
     var searchText by remember { mutableStateOf("") }
 
-    // Lista mutable de equipos filtrados por búsqueda
-    val equiposFiltrados = remember { mutableStateListOf<Equipo>() }
-
-    // Función para realizar la búsqueda y actualizar la lista de equipos filtrados
-    fun performSearch(query: String) {
-        equiposFiltrados.clear()
-        val listaEquipos = favoritosViewModel.equiposFavoritos.value ?: emptyList()
-        equiposFiltrados.addAll(listaEquipos.filter { it.nombre.contains(query, ignoreCase = true) })
+    // Función para realizar la búsqueda y cerrar el diálogo de búsqueda
+    fun performSearchAndDismissDialog(query: String) {
+        // Realizar la búsqueda aquí
+        showDialog.value = false // Cerrar el diálogo después de la búsqueda
     }
 
     // Bottom bar
@@ -1137,23 +1174,102 @@ fun CustomTopBar(navController: NavController, title: String) {
                 )
             }
         }
-
     }
 
     // Diálogo de búsqueda
     if (showDialog.value) {
-        SearchDialog(
-            onSearch = { searchText ->
-                performSearch(searchText)
-                // Aquí podrías ejecutar alguna acción adicional si es necesario
-                showDialog.value = false // Cerrar el diálogo después de la búsqueda
+        AlertDialog(
+            onDismissRequest = { showDialog.value = false },
+            title = { Text("Buscar equipo") },
+            text = {
+                TextField(
+                    value = searchText,
+                    onValueChange = { searchText = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text("Nombre del equipo") }
+                )
             },
-            onDismiss = { showDialog.value = false }
+            confirmButton = {
+                Button(
+                    onClick = { performSearchAndDismissDialog(searchText) }
+                ) {
+                    Text("Buscar")
+                }
+            },
+            dismissButton = {
+                Button(
+                    onClick = { showDialog.value = false }
+                ) {
+                    Text("Cancelar")
+                }
+            }
         )
     }
 }
 
 
 
+@Composable
+fun EquipoDetailScreen(navController: NavController, equipo: Equipo) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF8B4513))
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp)
+                .background(Color.Black)
+        ) {
+            Image(
+                painter = painterResource(id = equipo.imagen),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
+            IconButton(
+                onClick = { navController.popBackStack() },
+                modifier = Modifier.align(Alignment.TopStart).padding(16.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ArrowBack,
+                    contentDescription = "Back",
+                    tint = Color.White
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = equipo.nombre,
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.White
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = equipo.detalles, // Mostrar los detalles del equipo aquí
+            fontSize = 16.sp,
+            color = Color.White
+        )
 
-
+        // Barra de navegación en la parte inferior de la pantalla
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp)
+                .background(Color.Black)
+                .align(Alignment.BottomCenter),
+            contentAlignment = Alignment.Center
+        ) {
+            // Icono de home
+            IconButton(onClick = { navController.navigate("explore") }) {
+                Icon(
+                    imageVector = Icons.Default.Home,
+                    contentDescription = "Home",
+                    tint = Color.White
+                )
+            }
+        }
+    }
+}
