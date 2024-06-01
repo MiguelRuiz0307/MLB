@@ -1,5 +1,6 @@
 package com.example.mlbtheshow
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -61,6 +62,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.window.Dialog
 
 
@@ -200,36 +202,219 @@ class FavoritosViewModel : ViewModel() {
         // Inicializamos la lista de favoritos vacía
         _equiposFavoritos.value = emptyList()
         _todosLosEquipos.value = listOf(
-            Equipo("Baltimore Orioles", "Fueron fundados en 1894\nHan ganado nueve series\n Mundiales", R.drawable.orioles),
-            Equipo("New York Yankees", "Fueron fundados en 1903\nHan ganado 27 series\n Mundiales", R.drawable.yankees),
-            Equipo("Boston Red Sox", "Fueron fundados en 1901\nHan ganado 9 Series\n Mundiales", R.drawable.boston),
-            Equipo("Tampa Bay Rays", "Fueron fundados en 1998\nAún no han ganado una\n serie Mundial.", R.drawable.rays),
-            Equipo("Toronto Blue Jays", "Fueron fundados en 1977\nHan ganado dos veces\n la Serie Mundial", R.drawable.toronto),
-            Equipo("Chicago White Sox", "Fueron fundados en 1901\nHan ganado tres series\n Mundiales", R.drawable.whitesox),
-            Equipo("Cleveland Guardians", "Fueron fundados en 1894\nHan ganado dos series\n Mundiales", R.drawable.cleveland),
-            Equipo("Detroit Tigers", "Fueron fundados en 1894\nHan ganado cuatro Series\n Mundiales", R.drawable.detroit),
-            Equipo("Kansas City Royals", "Fueron fundados en 1969\nHan ganado dos series\n Mundiales", R.drawable.kansascity),
-            Equipo("Minnesota Twins", "Fueron fundados en 1901\nHan ganado tres series\n Mundiales", R.drawable.twins),
-            Equipo("Los Ángeles Angels", "Fueron fundados en 1961\nHan ganado una serie\n Mundial", R.drawable.angels),
-            Equipo("Seattle Mariners", "Fueron fundados en 1977\nAún no han ganado una\n serie Mundial", R.drawable.mariners),
-            Equipo("Houston Astros", "Fueron fundados en 1962\nHan ganado dos series\n Mundiales", R.drawable.astros),
-            Equipo("Oakland Athletics", "Fueron fundados en 1901\nHan ganado nueve series\n Mundiales", R.drawable.athletics),
-            Equipo("Texas Rangers", "Fueron fundados en 1961\nAún no han ganado una\n serie Mundial", R.drawable.rangers),
-            Equipo("Atlanta Braves", "Fueron fundados en 1871\nHan ganado cuatro series\n Mundiales", R.drawable.braves),
-            Equipo("Miami Marlins", "Fueron fundados en 1993\nHan ganado dos series\n Mundiales", R.drawable.marlins),
-            Equipo("New York Mets", "Fueron fundados en 1962\nHan ganado dos series\n Mundiales", R.drawable.mets),
-            Equipo("Philadelphia Phillies", "Fueron fundados en 1883\nHan ganado dos series\n Mundiales", R.drawable.phillies),
-            Equipo("Washington Nationals", "Fueron fundados en 1969\nHan ganado una serie\n Mundial", R.drawable.nationals),
-            Equipo("Chicago Cubs", "Fueron fundados en 1876\nHan ganado tres series\n Mundiales", R.drawable.cubs),
-            Equipo("Cincinnati Reds", "Fueron fundados en 1881\nHan ganado cinco series\n Mundiales", R.drawable.reds),
-            Equipo("Milwaukee Brewers", "Fueron fundados en 1969\nAún no han ganado una\n serie Mundial", R.drawable.brewers),
-            Equipo("Pittsburgh Pirates", "Fueron fundados en 1882\nHan ganado cinco series\n Mundiales", R.drawable.pirates),
-            Equipo("St. Louis Cardinals", "Fueron fundados en 1882\nHan ganado once series\n Mundiales", R.drawable.cardinals),
-            Equipo("Arizona Diamondbacks", "Fueron fundados en 1998\nHan ganado una serie\n Mundial", R.drawable.arizona),
-            Equipo("Colorado Rockies", "Fueron fundados en 1993\nAún no han ganado una\n serie Mundial", R.drawable.rockies),
-            Equipo("Los Angeles Dodgers", "Fueron fundados en 1883\nHan ganado siete series\n Mundiales", R.drawable.dodgers),
-            Equipo("San Diego Padres", "Fueron fundados en 1969\nAún no han ganado una\n serie Mundial", R.drawable.padres),
-            Equipo("San Francisco Giants", "Fueron fundados en 1883\nHan ganado ocho series\n Mundiales", R.drawable.giants)
+            Equipo(
+                "Baltimore Orioles",
+                "Fueron fundados en 1894\nHan ganado nueve series Mundiales",
+                R.drawable.orioles,
+                "Los Baltimore Orioles (en español, Los Orioles de Baltimore) son un equipo de béisbol profesional de los Estados Unidos con sede en Baltimore, Maryland. " +
+                        "Compiten en la División Este de la Liga Americana (AL) de las Grandes Ligas de Béisbol (MLB) y disputan sus partidos como locales en el Oriole Park at Camden Yards.\n" +
+                        "Durante su historia ha logrado tres Series Mundiales, siete campeonatos de la Liga Americana y diez títulos de división."
+            ),
+            Equipo(
+                "New York Yankees",
+                "Fueron fundados en 1903\nHan ganado 27 series Mundiales",
+                R.drawable.yankees,
+                "Los New York Yankees son uno de los equipos más emblemáticos y exitosos de la Major League Baseball (MLB). Fundados en 1901, han ganado 27 Series Mundiales, más que cualquier otro equipo en la historia de la MLB. " +
+                        "Los Yankees juegan en el Yankee Stadium, ubicado en el Bronx, Nueva York. El equipo ha contado con algunas de las mayores leyendas del béisbol, como Babe Ruth, Lou Gehrig, Joe DiMaggio, Mickey Mantle y Derek Jeter. " +
+                        "Su uniforme con rayas y el famoso logo 'NY' son reconocidos mundialmente. A lo largo de los años, los Yankees han establecido una tradición de excelencia y una gran base de seguidores."
+            ),
+            Equipo(
+                "Boston Red Sox",
+                "Fueron fundados en 1901\nHan ganado 9 Series Mundiales",
+                R.drawable.boston,
+                "Los Boston Red Sox son un equipo de béisbol profesional de los Estados Unidos con sede en Boston, Massachusetts. Compiten en la División Este de la Liga Americana (AL) de las Grandes Ligas de Béisbol (MLB). " +
+                        "El equipo ha ganado nueve Series Mundiales, con su primer título en 1903 y el más reciente en 2018. Su estadio local es el Fenway Park, conocido por su icónica pared 'Green Monster' en el jardín izquierdo."
+            ),
+            Equipo(
+                "Tampa Bay Rays",
+                "Fueron fundados en 1998\nAún no han ganado una serie Mundial.",
+                R.drawable.rays,
+                "Los Tampa Bay Rays son un equipo de béisbol profesional de los Estados Unidos con sede en St. Petersburg, Florida. Compiten en la División Este de la Liga Americana (AL) de las Grandes Ligas de Béisbol (MLB). " +
+                        "Fundados en 1998, los Rays han llegado a la Serie Mundial en dos ocasiones, en 2008 y 2020, pero aún no han conseguido ganar el campeonato."
+            ),
+            Equipo(
+                "Toronto Blue Jays",
+                "Fueron fundados en 1977\nHan ganado dos veces la Serie Mundial",
+                R.drawable.toronto,
+                "Los Toronto Blue Jays son un equipo de béisbol profesional de Canadá con sede en Toronto, Ontario. Son el único equipo canadiense en las Grandes Ligas de Béisbol (MLB). " +
+                        "Fundados en 1977, los Blue Jays han ganado la Serie Mundial en dos ocasiones, en 1992 y 1993. Juegan sus partidos como locales en el Rogers Centre, uno de los estadios más modernos de la MLB."
+            ),
+            Equipo(
+                "Chicago White Sox",
+                "Fueron fundados en 1901\nHan ganado tres series Mundiales",
+                R.drawable.whitesox,
+                "Los Chicago White Sox, conocidos también como los 'Pale Hose' o 'South Siders', son un equipo de béisbol profesional de los Estados Unidos con sede en Chicago, Illinois. " +
+                        "Compiten en la División Central de la Liga Americana (AL) de las Grandes Ligas de Béisbol (MLB). Han ganado la Serie Mundial en tres ocasiones, en 1906, 1917 y 2005."
+            ),
+            Equipo(
+                "Cleveland Guardians",
+                "Fueron fundados en 1894\nHan ganado dos series Mundiales",
+                R.drawable.cleveland,
+                "Los Cleveland Guardians, anteriormente conocidos como los Cleveland Indians, son un equipo de béisbol profesional de los Estados Unidos con sede en Cleveland, Ohio. " +
+                        "Compiten en la División Central de la Liga Americana (AL) de las Grandes Ligas de Béisbol (MLB). Han ganado la Serie Mundial en dos ocasiones, en 1920 y 1948."
+            ),
+            Equipo(
+                "Detroit Tigers",
+                "Fueron fundados en 1894\nHan ganado cuatro Series Mundiales",
+                R.drawable.detroit,
+                "Los Detroit Tigers son un equipo de béisbol profesional de los Estados Unidos con sede en Detroit, Michigan. Compiten en la División Central de la Liga Americana (AL) de las Grandes Ligas de Béisbol (MLB). " +
+                        "Fundados en 1894, los Tigers han ganado la Serie Mundial en cuatro ocasiones, en 1935, 1945, 1968 y 1984."
+            ),
+            Equipo(
+                "Kansas City Royals",
+                "Fueron fundados en 1969\nHan ganado dos series Mundiales",
+                R.drawable.kansascity,
+                "Los Kansas City Royals son un equipo de béisbol profesional de los Estados Unidos con sede en Kansas City, Missouri. Compiten en la División Central de la Liga Americana (AL) de las Grandes Ligas de Béisbol (MLB). " +
+                        "Fundados en 1969, los Royals han ganado la Serie Mundial en dos ocasiones, en 1985 y 2015."
+            ),
+            Equipo(
+                "Minnesota Twins",
+                "Fueron fundados en 1901\nHan ganado tres series Mundiales",
+                R.drawable.twins,
+                "Los Minnesota Twins son un equipo de béisbol profesional de los Estados Unidos con sede en Minneapolis, Minnesota. Compiten en la División Central de la Liga Americana (AL) de las Grandes Ligas de Béisbol (MLB). " +
+                        "Fundados en 1901 como los Washington Senators, se trasladaron a Minnesota en 1961. Han ganado la Serie Mundial en tres ocasiones, en 1924, 1987 y 1991."
+            ),
+            Equipo(
+                "Los Ángeles Angels",
+                "Fueron fundados en 1961\nHan ganado una serie Mundial",
+                R.drawable.angels,
+                "Los Los Ángeles Angels, conocidos oficialmente como los Los Angeles Angels of Anaheim, son un equipo de béisbol profesional de los Estados Unidos con sede en Anaheim, California. " +
+                        "Compiten en la División Oeste de la Liga Americana (AL) de las Grandes Ligas de Béisbol (MLB). Fundados en 1961, ganaron su única Serie Mundial en 2002."
+            ),
+            Equipo(
+                "Seattle Mariners",
+                "Fueron fundados en 1977\nAún no han ganado una serie Mundial",
+                R.drawable.mariners,
+                "Los Seattle Mariners son un equipo de béisbol profesional de los Estados Unidos con sede en Seattle, Washington. Compiten en la División Oeste de la Liga Americana (AL) de las Grandes Ligas de Béisbol (MLB). " +
+                        "Fundados en 1977, los Mariners aún no han ganado una Serie Mundial. Su estadio local es el T-Mobile Park, conocido por su techo retráctil y vistas del horizonte de Seattle."
+            ),
+            Equipo(
+                "Houston Astros",
+                "Fueron fundados en 1962\nHan ganado dos series Mundiales",
+                R.drawable.astros,
+                "Los Houston Astros son un equipo de béisbol profesional de los Estados Unidos con sede en Houston, Texas. Compiten en la División Oeste de la Liga Americana (AL) de las Grandes Ligas de Béisbol (MLB). " +
+                        "Fundados en 1962, los Astros han ganado la Serie Mundial en dos ocasiones, en 2017 y 2022."
+            ),
+            Equipo(
+                "Oakland Athletics",
+                "Fueron fundados en 1901\nHan ganado nueve series Mundiales",
+                R.drawable.athletics,
+                "Los Oakland Athletics, conocidos también como los 'A's', son un equipo de béisbol profesional de los Estados Unidos con sede en Oakland, California. " +
+                        "Compiten en la División Oeste de la Liga Americana (AL) de las Grandes Ligas de Béisbol (MLB). Fundados en 1901 como los Philadelphia Athletics, se trasladaron a Oakland en 1968. " +
+                        "Han ganado la Serie Mundial en nueve ocasiones, con su primer título en 1910 y el más reciente en 1989."
+            ),
+            Equipo(
+                "Texas Rangers",
+                "Fueron fundados en 1961\nAún no han ganado una serie Mundial",
+                R.drawable.rangers,
+                "Los Texas Rangers son un equipo de béisbol profesional de los Estados Unidos con sede en Arlington, Texas. Compiten en la División Oeste de la Liga Americana (AL) de las Grandes Ligas de Béisbol (MLB). " +
+                        "Fundados en 1961 como los Washington Senators, se trasladaron a Texas en 1972. A pesar de haber llegado a la Serie Mundial en 2010 y 2011, los Rangers aún no han conseguido ganar el campeonato."
+            ),
+            Equipo(
+                "Atlanta Braves",
+                "Fueron fundados en 1871\nHan ganado cuatro series Mundiales",
+                R.drawable.braves,
+                "Los Atlanta Braves son un equipo de béisbol profesional de los Estados Unidos con sede en Atlanta, Georgia. Compiten en la División Este de la Liga Nacional (NL) de las Grandes Ligas de Béisbol (MLB). " +
+                        "Fundados en 1871 como los Boston Red Stockings, se trasladaron a Atlanta en 1966. Han ganado la Serie Mundial en cuatro ocasiones, en 1914, 1957, 1995 y 2021."
+            ),
+            Equipo(
+                "Miami Marlins",
+                "Fueron fundados en 1993\nHan ganado dos series Mundiales",
+                R.drawable.marlins,
+                "Los Miami Marlins son un equipo de béisbol profesional de los Estados Unidos con sede en Miami, Florida. Compiten en la División Este de la Liga Nacional (NL) de las Grandes Ligas de Béisbol (MLB). " +
+                        "Fundados en 1993, los Marlins han ganado la Serie Mundial en dos ocasiones, en 1997 y 2003."
+            ),
+            Equipo(
+                "New York Mets",
+                "Fueron fundados en 1962\nHan ganado dos series Mundiales",
+                R.drawable.mets,
+                "Los New York Mets son un equipo de béisbol profesional de los Estados Unidos con sede en Queens, Nueva York. Compiten en la División Este de la Liga Nacional (NL) de las Grandes Ligas de Béisbol (MLB). " +
+                        "Fundados en 1962, los Mets han ganado la Serie Mundial en dos ocasiones, en 1969 y 1986."
+            ),
+            Equipo(
+                "Philadelphia Phillies",
+                "Fueron fundados en 1883\nHan ganado dos series Mundiales",
+                R.drawable.phillies,
+                "Los Philadelphia Phillies son un equipo de béisbol profesional de los Estados Unidos con sede en Filadelfia, Pensilvania. Compiten en la División Este de la Liga Nacional (NL) de las Grandes Ligas de Béisbol (MLB). " +
+                        "Fundados en 1883, los Phillies han ganado la Serie Mundial en dos ocasiones, en 1980 y 2008."
+            ),
+            Equipo(
+                "Washington Nationals",
+                "Fueron fundados en 1969\nHan ganado una serie Mundial",
+                R.drawable.nationals,
+                "Los Washington Nationals son un equipo de béisbol profesional de los Estados Unidos con sede en Washington, D.C. Compiten en la División Este de la Liga Nacional (NL) de las Grandes Ligas de Béisbol (MLB). " +
+                        "Fundados en 1969 como los Montreal Expos, se trasladaron a Washington en 2005. Ganaron su única Serie Mundial en 2019."
+            ),
+            Equipo(
+                "Chicago Cubs",
+                "Fueron fundados en 1876\nHan ganado tres series Mundiales",
+                R.drawable.cubs,
+                "Los Chicago Cubs son un equipo de béisbol profesional de los Estados Unidos con sede en Chicago, Illinois. Compiten en la División Central de la Liga Nacional (NL) de las Grandes Ligas de Béisbol (MLB). " +
+                        "Fundados en 1876, los Cubs han ganado la Serie Mundial en tres ocasiones, en 1907, 1908 y 2016. Su estadio local es el histórico Wrigley Field."
+            ),
+            Equipo(
+                "Cincinnati Reds",
+                "Fueron fundados en 1881\nHan ganado cinco series Mundiales",
+                R.drawable.reds,
+                "Los Cincinnati Reds son un equipo de béisbol profesional de los Estados Unidos con sede en Cincinnati, Ohio. Compiten en la División Central de la Liga Nacional (NL) de las Grandes Ligas de Béisbol (MLB). " +
+                        "Fundados en 1881, los Reds han ganado la Serie Mundial en cinco ocasiones, en 1919, 1940, 1975, 1976 y 1990."
+            ),
+            Equipo(
+                "Milwaukee Brewers",
+                "Fueron fundados en 1969\nAún no han ganado una serie Mundial",
+                R.drawable.brewers,
+                "Los Milwaukee Brewers son un equipo de béisbol profesional de los Estados Unidos con sede en Milwaukee, Wisconsin. Compiten en la División Central de la Liga Nacional (NL) de las Grandes Ligas de Béisbol (MLB). " +
+                        "Fundados en 1969, los Brewers aún no han ganado una Serie Mundial, aunque llegaron al campeonato en 1982."
+            ),
+            Equipo(
+                "Pittsburgh Pirates",
+                "Fueron fundados en 1882\nHan ganado cinco series Mundiales",
+                R.drawable.pirates,
+                "Los Pittsburgh Pirates son un equipo de béisbol profesional de los Estados Unidos con sede en Pittsburgh, Pensilvania. Compiten en la División Central de la Liga Nacional (NL) de las Grandes Ligas de Béisbol (MLB). " +
+                        "Fundados en 1882, los Pirates han ganado la Serie Mundial en cinco ocasiones, en 1909, 1925, 1960, 1971 y 1979."
+            ),
+            Equipo(
+                "St. Louis Cardinals",
+                "Fueron fundados en 1882\nHan ganado once series Mundiales",
+                R.drawable.cardinals,
+                "Los St. Louis Cardinals son un equipo de béisbol profesional de los Estados Unidos con sede en San Luis, Misuri. Compiten en la División Central de la Liga Nacional (NL) de las Grandes Ligas de Béisbol (MLB). " +
+                        "Fundados en 1882, los Cardinals han ganado la Serie Mundial en once ocasiones, la segunda mayor cantidad en la historia de la MLB. Sus títulos más recientes fueron en 2006 y 2011."
+            ),
+            Equipo(
+                "Arizona Diamondbacks",
+                "Fueron fundados en 1998\nHan ganado una serie Mundial",
+                R.drawable.arizona,
+                "Los Arizona Diamondbacks, conocidos también como los 'D-backs', son un equipo de béisbol profesional de los Estados Unidos con sede en Phoenix, Arizona. Compiten en la División Oeste de la Liga Nacional (NL) de las Grandes Ligas de Béisbol (MLB). " +
+                        "Fundados en 1998, ganaron su única Serie Mundial en 2001."
+            ),
+            Equipo(
+                "Colorado Rockies",
+                "Fueron fundados en 1993\nAún no han ganado una serie Mundial",
+                R.drawable.rockies,
+                "Los Colorado Rockies son un equipo de béisbol profesional de los Estados Unidos con sede en Denver, Colorado. Compiten en la División Oeste de la Liga Nacional (NL) de las Grandes Ligas de Béisbol (MLB). " +
+                        "Fundados en 1993, los Rockies aún no han ganado una Serie Mundial, aunque llegaron al campeonato en 2007."
+            ),
+            Equipo(
+                "Los Angeles Dodgers",
+                "Fueron fundados en 1883\nHan ganado siete series Mundiales",
+                R.drawable.dodgers,
+                "Los Los Angeles Dodgers son un equipo de béisbol profesional de los Estados Unidos con sede en Los Ángeles, California. Compiten en la División Oeste de la Liga Nacional (NL) de las Grandes Ligas de Béisbol (MLB). " +
+                        "Fundados en 1883 como los Brooklyn Atlantics, se trasladaron a Los Ángeles en 1958. Han ganado la Serie Mundial en siete ocasiones, la más reciente en 2020."
+            ),
+            Equipo(
+                "San Diego Padres",
+                "Fueron fundados en 1969\nAún no han ganado una serie Mundial",
+                R.drawable.padres,
+                "Los San Diego Padres son un equipo de béisbol profesional de los Estados Unidos con sede en San Diego, California. Compiten en la División Oeste de la Liga Nacional (NL) de las Grandes Ligas de Béisbol (MLB). " +
+                        "Fundados en 1969, los Padres aún no han ganado una Serie Mundial, aunque han llegado al campeonato en dos ocasiones, en 1984 y 1998."
+            ),
+            Equipo(
+                "San Francisco Giants",
+                "Fueron fundados en 1883\nHan ganado ocho series Mundiales",
+                R.drawable.giants,
+                "Los San Francisco Giants son un equipo de béisbol profesional de los Estados Unidos con sede en San Francisco, California. Compiten en la División Oeste de la Liga Nacional (NL) de las Grandes Ligas de Béisbol (MLB). " +
+                        "Fundados en 1883 como los New York Gothams, se trasladaron a San Francisco en 1958. Han ganado la Serie Mundial en ocho ocasiones, incluyendo tres títulos recientes en 2010, 2012 y 2014."
+            )
         )
     }
 
@@ -1211,47 +1396,98 @@ fun CustomBottomBar(
 
 @Composable
 fun EquipoDetailScreen(navController: NavController, equipo: Equipo) {
+
+    // Define una variable para el contexto
+    val context = LocalContext.current
+
+    // Función para compartir
+    fun shareContent() {
+        val shareIntent = Intent().apply {
+            action = Intent.ACTION_SEND
+            putExtra(Intent.EXTRA_SUBJECT, "Detalles del equipo: ${equipo.nombre}")
+            putExtra(Intent.EXTRA_TEXT, equipo.detalles)
+            type = "text/plain"
+        }
+        context.startActivity(Intent.createChooser(shareIntent, "Compartir detalles del equipo"))
+    }
+
+    // Caja principal que cubre toda la pantalla y establece un fondo marrón
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFF8B4513))
     ) {
+        // Cabecera que contiene la imagen del equipo y la flecha de retroceso
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(200.dp)
-                .background(Color.Black)
+                .height(115.dp)
+                .background(Color.Black),
+            contentAlignment = Alignment.Center
         ) {
+            // Imagen del equipo centrada en la cabecera
             Image(
                 painter = painterResource(id = equipo.imagen),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .size(120.dp)
+                    .align(Alignment.Center)
             )
+            // Botón de flecha de retroceso centrado horizontalmente
             IconButton(
                 onClick = { navController.popBackStack() },
                 modifier = Modifier.align(Alignment.TopStart).padding(16.dp)
+
             ) {
                 Icon(
+                    modifier = Modifier
+                        .align(Alignment.Center),
                     imageVector = Icons.Default.ArrowBack,
                     contentDescription = "Back",
                     tint = Color.White
                 )
             }
+            // Botón de compartir en la cabecera
+            IconButton(
+                onClick = { shareContent() },
+                modifier = Modifier.align(Alignment.TopEnd).padding(16.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Share,
+                    contentDescription = "Share",
+                    tint = Color.White
+                )
+            }
         }
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = equipo.nombre,
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.White
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = equipo.detalles, // Mostrar los detalles del equipo aquí
-            fontSize = 16.sp,
-            color = Color.White
-        )
+
+        // Columna que contiene el nombre y los detalles del equipo
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top
+        ) {
+            Spacer(modifier = Modifier.height(130.dp)) // Espacio ajustado entre la cabecera y el nombre del equipo
+            // Nombre del equipo centrado y en letras grandes
+            Text(
+                text = equipo.nombre,
+                fontSize = 32.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            // Detalles del equipo justificados y ocupando todo el ancho disponible
+            Text(
+                text = equipo.detalles,
+                fontSize = 16.sp,
+                color = Color.White,
+                textAlign = TextAlign.Justify,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
 
         // Barra de navegación en la parte inferior de la pantalla
         Box(
@@ -1262,7 +1498,7 @@ fun EquipoDetailScreen(navController: NavController, equipo: Equipo) {
                 .align(Alignment.BottomCenter),
             contentAlignment = Alignment.Center
         ) {
-            // Icono de home
+            // Icono de home en la barra de navegación
             IconButton(onClick = { navController.navigate("explore") }) {
                 Icon(
                     imageVector = Icons.Default.Home,
@@ -1273,3 +1509,6 @@ fun EquipoDetailScreen(navController: NavController, equipo: Equipo) {
         }
     }
 }
+
+
+
