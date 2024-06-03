@@ -50,6 +50,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import com.example.mlbtheshow.ui.theme.MLBTheShowTheme
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Scaffold
@@ -461,6 +462,13 @@ class FavoritosViewModel : ViewModel() {
         _showMessage.value = mostrar
     }
 
+
+    fun searchTeams(query: String) {
+        val filteredTeams = _todosLosEquipos.value?.filter { equipo ->
+            equipo.nombre.contains(query, ignoreCase = true)
+        }
+        _equiposFavoritos.value = filteredTeams ?: emptyList()
+    }
 }
 
 
@@ -1304,21 +1312,24 @@ fun CustomTopBar(navController: NavController, title: String) {
 }
 
 
+
+
+
+
 @Composable
 fun CustomBottomBar(
     navController: NavController,
     favoritosViewModel: FavoritosViewModel,
 ) {
-    // Estado para controlar la visibilidad del diálogo de búsqueda
-    val showDialog = remember { mutableStateOf(false) }
+    // Estado para controlar la visibilidad del campo de búsqueda
+    val showSearchField = remember { mutableStateOf(false) }
 
     // Estado para almacenar el texto de búsqueda
     var searchText by remember { mutableStateOf("") }
 
-    // Función para realizar la búsqueda y cerrar el diálogo de búsqueda
-    fun performSearchAndDismissDialog(query: String) {
-        // Realizar la búsqueda aquí
-        showDialog.value = false // Cerrar el diálogo después de la búsqueda
+    // Función para realizar la búsqueda
+    fun performSearch(query: String) {
+        favoritosViewModel.searchTeams(query)
     }
 
     // Bottom bar
@@ -1334,7 +1345,7 @@ fun CustomBottomBar(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
         ) {
-            IconButton(onClick = { navController.navigate("explore")}) {
+            IconButton(onClick = { navController.navigate("explore") }) {
                 Icon(
                     imageVector = Icons.Default.Home,
                     contentDescription = "Home",
@@ -1348,47 +1359,52 @@ fun CustomBottomBar(
                     tint = Color.White
                 )
             }
-            // IconButton para abrir el diálogo de búsqueda
-            IconButton(
-                onClick = { showDialog.value = true },
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = "Search",
-                    tint = Color.White
-                )
-            }
-        }
-    }
-
-    // Diálogo de búsqueda
-    if (showDialog.value) {
-        AlertDialog(
-            onDismissRequest = { showDialog.value = false },
-            title = { Text("Buscar equipo") },
-            text = {
+            if (showSearchField.value) {
+                // Campo de búsqueda integrado en la barra
                 TextField(
                     value = searchText,
-                    onValueChange = { searchText = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Nombre del equipo") }
+                    onValueChange = {
+                        searchText = it
+                        performSearch(it) // Realizar búsqueda en tiempo real
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth(0.5f) // Ajustar el tamaño del campo de búsqueda
+                        .background(Color.White, shape = RoundedCornerShape(8.dp)),
+                    label = { Text("Buscar equipo") },
+                    singleLine = true,
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = "Search",
+                        )
+                    },
+                    trailingIcon = {
+                        IconButton(
+                            onClick = {
+                                searchText = ""
+                                showSearchField.value = false
+                                performSearch("") // Limpiar la búsqueda
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Close"
+                            )
+                        }
+                    }
                 )
-            },
-            confirmButton = {
-                Button(
-                    onClick = { performSearchAndDismissDialog(searchText) }
+            } else {
+                IconButton(
+                    onClick = { showSearchField.value = true }
                 ) {
-                    Text("Buscar")
-                }
-            },
-            dismissButton = {
-                Button(
-                    onClick = { showDialog.value = false }
-                ) {
-                    Text("Cancelar")
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = "Search",
+                        tint = Color.White
+                    )
                 }
             }
-        )
+        }
     }
 }
 
