@@ -162,6 +162,7 @@ fun MyApp(favoritosViewModel: FavoritosViewModel) {
         composable("favoritos") {
             PantallaFavoritos(navController, favoritosViewModel = favoritosViewModel)
         }
+        // Ruta para la pantalla de detalles por equipo
         composable("equipo_detail/{equipoNombre}") { backStackEntry ->
             val equipoNombre = backStackEntry.arguments?.getString("equipoNombre")
             val equipo = favoritosViewModel.todosLosEquipos.value?.find { it.nombre == equipoNombre }
@@ -202,6 +203,7 @@ class FavoritosViewModel : ViewModel() {
     init {
         // Inicializamos la lista de favoritos vacía
         _equiposFavoritos.value = emptyList()
+        // Inicializamos la lista con el campo detalles
         _todosLosEquipos.value = listOf(
             Equipo(
                 "Baltimore Orioles",
@@ -422,7 +424,6 @@ class FavoritosViewModel : ViewModel() {
     // Método para establecer los equipos
     fun setTodosLosEquipos(equipos: List<Equipo>) {
 
-
     }
 
     /**
@@ -464,9 +465,11 @@ class FavoritosViewModel : ViewModel() {
 
 
     fun searchTeams(query: String) {
+        // Filtra la lista de todos los equipos, buscando aquellos cuyos nombres contienen la consulta de búsqueda
         val filteredTeams = _todosLosEquipos.value?.filter { equipo ->
             equipo.nombre.contains(query, ignoreCase = true)
         }
+        // Actualiza la lista de equipos favoritos con los resultados filtrados, o una lista vacía si no hay coincidencias
         _equiposFavoritos.value = filteredTeams ?: emptyList()
     }
 }
@@ -745,7 +748,7 @@ fun PantallaAmericana(navController: NavController, favoritosViewModel: Favorito
     val equiposFavoritos by favoritosViewModel.equiposFavoritos.observeAsState(emptyList())
 
     Scaffold(
-        topBar = { CustomTopBar(navController = navController, title = "Liga Nacional") },
+        topBar = { CustomTopBar(navController = navController, title = "Liga Americana") },
         bottomBar = { CustomBottomBar(navController, favoritosViewModel) }
     ) { paddingValues ->
         Column(
@@ -1268,12 +1271,18 @@ fun SearchDialog(
 
 
 
-
-
-
+/**
+ * Composable que representa una barra superior personalizada.
+ *
+ * Esta barra incluye un botón de retroceso y un título dinámico. El botón de retroceso
+ * utiliza el NavController para navegar hacia atrás en la pila de navegación.
+ *
+ * @param navController El controlador de navegación utilizado para gestionar la navegación.
+ * @param title El título que se mostrará en la barra superior.
+ */
 @Composable
 fun CustomTopBar(navController: NavController, title: String) {
-    // Cabecera
+    // Caja que contiene toda la cabecera
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -1316,6 +1325,15 @@ fun CustomTopBar(navController: NavController, title: String) {
 
 
 
+/**
+ * Composable que representa una barra inferior personalizada con opciones de navegación y un campo de búsqueda.
+ *
+ * Esta barra incluye botones para navegar a la pantalla de exploración y favoritos, así como
+ * un campo de búsqueda que se muestra y oculta según la acción del usuario.
+ *
+ * @param navController El controlador de navegación utilizado para gestionar la navegación.
+ * @param favoritosViewModel El ViewModel que gestiona la lógica relacionada con los equipos favoritos.
+ */
 @Composable
 fun CustomBottomBar(
     navController: NavController,
@@ -1332,7 +1350,7 @@ fun CustomBottomBar(
         favoritosViewModel.searchTeams(query)
     }
 
-    // Bottom bar
+    // Barra inferior
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -1410,6 +1428,12 @@ fun CustomBottomBar(
 
 
 
+/**
+ * Composable que muestra la pantalla de detalles de un equipo.
+ *
+ * @param navController El controlador de navegación utilizado para gestionar la navegación.
+ * @param equipo Un objeto `Equipo` que contiene los detalles del equipo a mostrar.
+ */
 @Composable
 fun EquipoDetailScreen(navController: NavController, equipo: Equipo) {
 
@@ -1525,6 +1549,3 @@ fun EquipoDetailScreen(navController: NavController, equipo: Equipo) {
         }
     }
 }
-
-
-
